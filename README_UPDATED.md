@@ -1,7 +1,6 @@
 # Documentação Atualizada da API Backend - Sistema de Administração ECC
 
 ## Visão Geral
-deploy
 
 Esta documentação descreve a API RESTful atualizada para o Sistema de Administração ECC (Encontro de Casais com Cristo). Foram implementadas as seguintes correções solicitadas:
 
