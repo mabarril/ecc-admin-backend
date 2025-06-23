@@ -5,6 +5,7 @@ const Inscricao = require('../models/inscricao');
 const UrlUnica = require('../models/url-unica');
 const CasalController = require('../controllers/casal-controller');
 const crypto = require('crypto');
+const e = require('express');
 
 // Gerar token único
 const gerarToken = () => {
@@ -14,33 +15,27 @@ const gerarToken = () => {
 // Gerar URL única para convidado (protegida - apenas admin)
 exports.gerarUrlParaConvidado = async (req, res) => {
   try {
-    const { casal_id, evento_id, email_destino, mensagem_personalizada } = req.body;
+    const { padrinho_id, evento_id } = req.body;
 
     console.log('validar dados obrigatorios');
     // Validar dados obrigatórios
-    if (!casal_id || !evento_id || !email_destino) {
+    if (!padrinho_id || !evento_id) {
       return res.status(400).json({
         success: false,
-        message: 'Casal, evento e email são obrigatórios'
+        message: 'Padrinho, evento são obrigatórios'
       });
     }
 
   
-    console.log('Verificar se o casal existe')
-    // Verificar se o casal existe
-    console.log(casal_id);
-    const casal = await Casal.findByPk(casal_id);
-    console.log('casal ', casal);
+    // Verificar se o Padrinho existe
+    const casal = await Casal.findByPk(padrinho_id);
     if (!casal) {
-      console.log('Casal não encontrado');
       return res.status(404).json({
         success: false,
-        message: 'Casal não encontrado'
+        message: 'Padrinho não encontrado'
       });
     }
 
-    console.log('verificar evento');
-    // Verificar se o evento existe
     const evento = await Evento.findByPk(evento_id);
     if (!evento) {
       return res.status(404).json({
@@ -49,23 +44,20 @@ exports.gerarUrlParaConvidado = async (req, res) => {
       });
     }
 
-    console.log('Verificar se o email é valido  ')
-    // Verificar se já existe uma inscrição para este casal neste evento
-    let inscricao = await Inscricao.findOne({
-      where: { casal_id, evento_id }
-    });
+    // Criar casal convidado 
+    console.log('Criar casal convidado');
+    const casal_id = await CasalController.createCasal();
+    
 
-    console.log('inscricao ', inscricao);
 
     // Se não existe, criar uma nova inscrição como convidado
-    if (!inscricao) {
       inscricao = await Inscricao.create({
         casal_id,
         evento_id,
+        padrinho_id,
         tipo_participante: 'convidado',
         status: 'pendente'
       });
-    }
 
     // Verificar se já existe uma URL única para esta inscrição
     let urlUnica = await UrlUnica.findOne({ where: { inscricao_id: inscricao.id } });
@@ -96,16 +88,18 @@ exports.gerarUrlParaConvidado = async (req, res) => {
     // Construir URL completa
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
     const urlCompleta = `${baseUrl}/inscricao?token=${urlUnica.token}`;
+    console.log('URL completa: ', urlCompleta);
 
-    // Simular envio de email
-    const emailSimulado = {
-      para: email_destino,
-      assunto: `Convite para ${evento.nome}`,
-      conteudo: mensagem_personalizada || `Você foi convidado para participar do evento ${evento.nome}. Acesse o link para confirmar sua inscrição: ${urlCompleta}`,
-      url: urlCompleta,
-      data_envio: new Date(),
-      token: urlUnica.token
-    };
+
+    // // Simular envio de email
+    // const emailSimulado = {
+    //   para: email_destino,
+    //   assunto: `Convite para ${evento.nome}`,
+    //   conteudo: mensagem_personalizada || `Você foi convidado para participar do evento ${evento.nome}. Acesse o link para confirmar sua inscrição: ${urlCompleta}`,
+    //   url: urlCompleta,
+    //   data_envio: new Date(),
+    //   token: urlUnica.token
+    // };
 
     res.status(201).json({
       success: true,
@@ -113,7 +107,7 @@ exports.gerarUrlParaConvidado = async (req, res) => {
       data: {
         inscricao,
         urlUnica,
-        email: emailSimulado
+        urlCompleta
       }
     });
 
