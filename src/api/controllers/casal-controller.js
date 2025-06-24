@@ -1,13 +1,21 @@
 const Casal = require('../models/casal');
 const Pessoa = require('../models/pessoa');
 const Filho = require('../models/filho');
+const e = require('express');
+
+
 
 // Criar um novo casal com pessoas e filhos
 exports.createCasal = async (req, res) => {
   try {
-    const { casal, pessoas, filhos } = req.body;
+    // const { casal, pessoas, filhos } = req.body;
+
+    casal = new Casal();
+    pessoas = [];
+    filhos = [];
 
     // Criar o casal
+    console.log('Criando casal:', casal);
     const novoCasal = await Casal.create(casal);
 
     // Criar as pessoas associadas ao casal
@@ -34,7 +42,11 @@ exports.createCasal = async (req, res) => {
       ]
     });
 
-    res.status(201).json(casalCompleto);
+    if (res) {
+      res.status(201).json(casalCompleto);
+    } else {
+      return casalCompleto.id;
+    }
   } catch (error) {
     console.error('Erro ao criar casal:', error);
     res.status(500).json({ message: 'Erro ao criar casal', error: error.message });
@@ -64,7 +76,7 @@ exports.getAllCasais = async (req, res) => {
 exports.getCasalById = async (req, res) => {
   try {
 
-    const {id} = req.params;
+    const { id } = req.params;
     const casal = await Casal.findByPk(id, {
       include: [
         { model: Pessoa, as: 'pessoas' },

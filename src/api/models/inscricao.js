@@ -17,6 +17,14 @@ const Inscricao = sequelize.define('Inscricao', {
       key: 'id'
     }
   },
+    padrinho_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: Casal,
+      key: 'id'
+    }
+  },
   evento_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
