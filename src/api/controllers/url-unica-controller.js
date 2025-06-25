@@ -87,7 +87,7 @@ exports.gerarUrlParaConvidado = async (req, res) => {
 
     // Construir URL completa
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
-    const urlCompleta = `${baseUrl}/inscricao?token=${urlUnica.token}`;
+    const urlCompleta = `${baseUrl}/inscricao/${urlUnica.token}`;
     console.log('URL completa: ', urlCompleta);
 
 
