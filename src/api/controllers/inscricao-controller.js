@@ -4,7 +4,7 @@ const Evento = require('../models/evento');
 const UrlUnica = require('../models/url-unica');
 const crypto = require('crypto');
 
-// Gerar token único para URL
+// Gerar token único para URL pp
 const gerarToken = () => {
   return crypto.randomBytes(32).toString('hex');
 };
