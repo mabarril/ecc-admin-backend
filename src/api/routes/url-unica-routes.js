@@ -19,4 +19,6 @@ router.put('/:id/renovar', auth, urlUnicaController.renovarUrlUnica);
 
 router.post('/:id/enviar', auth, urlUnicaController.enviarUrlUnica);
 
+router.get('/inscricao/:inscricao_id', urlUnicaController.obterUrlPorInscricao);
+
 module.exports = router;

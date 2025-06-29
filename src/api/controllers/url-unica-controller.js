@@ -368,3 +368,36 @@ exports.enviarUrlUnica = async (req, res) => {
     });
   }
 };
+
+// Obter URL completa a partir do id da inscrição
+exports.obterUrlPorInscricao = async (req, res) => {
+  try {
+    const { inscricao_id } = req.params;
+
+    // Buscar URL única pela inscrição
+    const urlUnica = await UrlUnica.findOne({ where: { inscricao_id } });
+
+    if (!urlUnica) {
+      return res.status(404).json({
+        success: false,
+        message: 'URL única não encontrada para esta inscrição'
+      });
+    }
+
+    // Construir URL completa
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const urlCompleta = `${baseUrl}/inscricao/${urlUnica.token}`;
+
+    res.status(200).json({
+      success: true,
+      urlCompleta
+    });
+  } catch (error) {
+    console.error('Erro ao obter URL por inscrição:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao obter URL por inscrição',
+      error: error.message
+    });
+  }
+};
