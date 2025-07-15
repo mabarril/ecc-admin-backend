@@ -7,26 +7,32 @@ const crypto = require('crypto');
 // Gerar token único para URL pp
 const gerarToken = () => {
   return crypto.randomBytes(32).toString('hex');
-};
+}
 
 // Criar uma nova inscrição com URL única
 exports.createInscricao = async (req, res) => {
+  console.log('Criando inscrição com dados:', req.body);
   try {
-    const { inscricao, gerar_url } = req.body;
-    console.log('TESTE');
-    
-    // // Verificar se o casal existe
-    // const casal = await Casal.findByPk(inscricao.casal_id);
-    // if (!casal) {
-    //   return res.status(404).json({ message: 'Casal não encontrado' });
-    // }
-    
+    inscricao = {
+      casal_id: req.body.casal_id,
+      evento_id: req.body.evento_id,
+      status: req.body.status || 'pendente',
+      tipo_participante: req.body.tipo_participante || 'participante',
+    };
+
+    console.log('inscricao ', inscricao);
+    // Verificar se o casal existe
+    const casal = await Casal.findByPk(inscricao.casal_id);
+    if (!casal) {
+      return res.status(404).json({ message: 'Casal não encontrado' });
+    }
+
     // Verificar se o evento existe
     const evento = await Evento.findByPk(inscricao.evento_id);
     if (!evento) {
       return res.status(404).json({ message: 'Evento não encontrado' });
     }
-    
+
     // Verificar se já existe inscrição para este casal neste evento
     const inscricaoExistente = await Inscricao.findOne({
       where: {
@@ -34,28 +40,29 @@ exports.createInscricao = async (req, res) => {
         evento_id: inscricao.evento_id
       }
     });
-    
+
     if (inscricaoExistente) {
       return res.status(400).json({ message: 'Este casal já está inscrito neste evento' });
     }
-    
+
     // Criar a inscrição
+    console.log('Criando nova inscrição:', inscricao);
     const novaInscricao = await Inscricao.create(inscricao);
     console.log('Nova inscrição criada:', novaInscricao.id);
-    
+
     // Gerar URL única se solicitado
-    if (gerar_url) {
-      // Calcular data de validade (até o final do evento)
-      const validoAte = evento.data_fim;
-      
-      // Criar URL única
-      await UrlUnica.create({
-        inscricao_id: novaInscricao.id,
-        token: gerarToken(),
-        valido_ate: validoAte
-      });
-    }
-    
+    // if (gerar_url) {
+    //   // Calcular data de validade (até o final do evento)
+    //   const validoAte = evento.data_fim;
+
+    //   // Criar URL única
+    //   await UrlUnica.create({
+    //     inscricao_id: novaInscricao.id,
+    //     token: gerarToken(),
+    //     valido_ate: validoAte
+    //   });
+    // }
+
     // Buscar a inscrição completa com URL única
     const inscricaoCompleta = await Inscricao.findByPk(novaInscricao.id, {
       include: [
@@ -64,7 +71,7 @@ exports.createInscricao = async (req, res) => {
         { model: UrlUnica, as: 'url_unica' }
       ]
     });
-    
+
     res.status(201).json(inscricaoCompleta);
   } catch (error) {
     console.error('Erro ao criar inscrição:', error);
@@ -82,7 +89,7 @@ exports.getAllInscricoes = async (req, res) => {
         { model: UrlUnica, as: 'url_unica' }
       ]
     });
-    
+
     res.status(200).json(inscricoes);
   } catch (error) {
     console.error('Erro ao buscar inscrições:', error);
@@ -94,7 +101,7 @@ exports.getAllInscricoes = async (req, res) => {
 exports.getInscricoesByEvento = async (req, res) => {
   try {
     const { eventoId } = req.params;
-    
+
     const inscricoes = await Inscricao.findAll({
       where: { evento_id: eventoId },
       include: [
@@ -102,7 +109,7 @@ exports.getInscricoesByEvento = async (req, res) => {
         { model: UrlUnica, as: 'url_unica' }
       ]
     });
-    
+
     res.status(200).json(inscricoes);
   } catch (error) {
     console.error('Erro ao buscar inscrições por evento:', error);
@@ -114,7 +121,7 @@ exports.getInscricoesByEvento = async (req, res) => {
 exports.getInscricoesByCasal = async (req, res) => {
   try {
     const { casalId } = req.params;
-    
+
     const inscricoes = await Inscricao.findAll({
       where: { casal_id: casalId },
       include: [
@@ -122,7 +129,7 @@ exports.getInscricoesByCasal = async (req, res) => {
         { model: UrlUnica, as: 'url_unica' }
       ]
     });
-    
+
     res.status(200).json(inscricoes);
   } catch (error) {
     console.error('Erro ao buscar inscrições por casal:', error);
@@ -134,7 +141,7 @@ exports.getInscricoesByCasal = async (req, res) => {
 exports.getInscricaoById = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const inscricao = await Inscricao.findByPk(id, {
       include: [
         { model: Casal, as: 'casal' },
@@ -143,11 +150,11 @@ exports.getInscricaoById = async (req, res) => {
         { model: UrlUnica, as: 'url_unica' }
       ]
     });
-    
+
     if (!inscricao) {
       return res.status(404).json({ message: 'Inscrição não encontrada' });
     }
-    
+
     res.status(200).json(inscricao);
   } catch (error) {
     console.error('Erro ao buscar inscrição:', error);
@@ -160,24 +167,24 @@ exports.updateInscricao = async (req, res) => {
   try {
     const { id } = req.params;
     const { inscricao, gerar_url } = req.body;
-    
+
     // Verificar se a inscrição existe
     const inscricaoExistente = await Inscricao.findByPk(id);
     if (!inscricaoExistente) {
       return res.status(404).json({ message: 'Inscrição não encontrada' });
     }
-    
+
     // Atualizar dados da inscrição
     await Inscricao.update(inscricao, { where: { id } });
-    
+
     // Gerar URL única se solicitado e não existir
     if (gerar_url) {
       const urlExistente = await UrlUnica.findOne({ where: { inscricao_id: id } });
-      
+
       if (!urlExistente) {
         // Buscar o evento para definir a data de validade
         const evento = await Evento.findByPk(inscricaoExistente.evento_id);
-        
+
         // Criar URL única
         await UrlUnica.create({
           inscricao_id: id,
@@ -186,7 +193,7 @@ exports.updateInscricao = async (req, res) => {
         });
       }
     }
-    
+
     // Buscar a inscrição atualizada
     const inscricaoAtualizada = await Inscricao.findByPk(id, {
       include: [
@@ -196,7 +203,7 @@ exports.updateInscricao = async (req, res) => {
         { model: UrlUnica, as: 'url_unica' }
       ]
     });
-    
+
     res.status(200).json(inscricaoAtualizada);
   } catch (error) {
     console.error('Erro ao atualizar inscrição:', error);
@@ -209,13 +216,13 @@ exports.cancelarInscricao = async (req, res) => {
   try {
     const { id } = req.params;
     const { data_desistencia, valor_devolvido, observacoes } = req.body;
-    
+
     // Verificar se a inscrição existe
     const inscricao = await Inscricao.findByPk(id);
     if (!inscricao) {
       return res.status(404).json({ message: 'Inscrição não encontrada' });
     }
-    
+
     // Atualizar status para cancelada
     await Inscricao.update({
       status: 'cancelada',
@@ -223,7 +230,7 @@ exports.cancelarInscricao = async (req, res) => {
       valor_devolvido,
       observacoes
     }, { where: { id } });
-    
+
     // Buscar a inscrição atualizada
     const inscricaoAtualizada = await Inscricao.findByPk(id, {
       include: [
@@ -231,7 +238,7 @@ exports.cancelarInscricao = async (req, res) => {
         { model: Evento, as: 'evento' }
       ]
     });
-    
+
     res.status(200).json(inscricaoAtualizada);
   } catch (error) {
     console.error('Erro ao cancelar inscrição:', error);
@@ -243,18 +250,18 @@ exports.cancelarInscricao = async (req, res) => {
 exports.deleteInscricao = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Verificar se a inscrição existe
     const inscricao = await Inscricao.findByPk(id);
     if (!inscricao) {
       return res.status(404).json({ message: 'Inscrição não encontrada' });
     }
-    
+
     // Excluir a inscrição (e sua URL única em cascata)
     await Casal.destroy({ where: { id: inscricao.casal_id } });
     await UrlUnica.destroy({ where: { inscricao_id: id } });
     await Inscricao.destroy({ where: { id } });
-    
+
     res.status(200).json({ message: 'Inscrição excluída com sucesso' });
   } catch (error) {
     console.error('Erro ao excluir inscrição:', error);
