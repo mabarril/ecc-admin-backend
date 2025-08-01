@@ -10,10 +10,9 @@ exports.createCasal = async (req, res) => {
   try {
     // const { casal, pessoas, filhos } = req.body;
 
-    casal = new Casal();
-    pessoas = [];
-    filhos = [];
-
+    console.log('Dados recebidos para criar casal:', req.body);
+    const { casal = {}, pessoas = [], filhos = [] } = req.body; 
+    
     // Criar o casal
     console.log('Criando casal:', casal);
     const novoCasal = await Casal.create(casal);

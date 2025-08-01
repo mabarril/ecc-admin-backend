@@ -12,9 +12,12 @@ const gerarToken = () => {
 // Criar uma nova inscrição com URL única
 exports.createInscricao = async (req, res) => {
   try {
-    const { inscricao, gerar_url } = req.body;
-    console.log('TESTE');
     
+    
+    const inscricao = req.body;
+    const gerar_url = 'true'; // Verifica se a URL deve ser gerada
+    console.log('Dados recebidos para criar inscrição:', inscricao);
+
     // // Verificar se o casal existe
     // const casal = await Casal.findByPk(inscricao.casal_id);
     // if (!casal) {
@@ -251,7 +254,7 @@ exports.deleteInscricao = async (req, res) => {
     }
     
     // Excluir a inscrição (e sua URL única em cascata)
-    await Casal.destroy({ where: { id: inscricao.casal_id } });
+    // await Casal.destroy({ where: { id: inscricao.casal_id } });
     await UrlUnica.destroy({ where: { inscricao_id: id } });
     await Inscricao.destroy({ where: { id } });
     
