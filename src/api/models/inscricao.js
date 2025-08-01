@@ -57,6 +57,10 @@ const Inscricao = sequelize.define('Inscricao', {
   observacoes: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  quarto: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 }, {
   tableName: 'inscricoes',

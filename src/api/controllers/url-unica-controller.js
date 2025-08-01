@@ -214,14 +214,15 @@ exports.validarToken = async (req, res) => {
       where: { token },
       include: [
         {
-          model: Inscricao,
+          model: Inscricao, as: 'inscricao',
           include: [
-            { model: Evento },
-            { model: Casal }
+            { model: Evento, as: 'evento' },
+            { model: Casal, as: 'casal'}
           ]
         }
       ]
     });
+
 
     // Verificar se a URL existe
     if (!urlUnica) {
@@ -242,9 +243,12 @@ exports.validarToken = async (req, res) => {
 
     // Retornar dados básicos da inscrição (sem informações sensíveis)
     const dadosInscrição = {
-      evento: urlUnica.Inscricao.Evento.nome,
-      data_evento: urlUnica.Inscricao.Evento.data_inicio,
-      tipo_participante: urlUnica.Inscricao.tipo_participante,
+      evento: urlUnica.inscricao.evento.nome,
+      evento_id: urlUnica.inscricao.evento.id,
+      data_evento: urlUnica.inscricao.evento.data_inicio,
+      tipo_participante: urlUnica.inscricao.tipo_participante,
+      casal_id: urlUnica.inscricao.casal_id,
+      padrinho_id: urlUnica.inscricao.padrinho_id,
       token: urlUnica.token
     };
 

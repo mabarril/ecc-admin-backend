@@ -258,7 +258,7 @@ exports.deleteInscricao = async (req, res) => {
     }
 
     // Excluir a inscrição (e sua URL única em cascata)
-    await Casal.destroy({ where: { id: inscricao.casal_id } });
+    // await Casal.destroy({ where: { id: inscricao.casal_id } });
     await UrlUnica.destroy({ where: { inscricao_id: id } });
     await Inscricao.destroy({ where: { id } });
 
